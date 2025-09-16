@@ -1,0 +1,194 @@
+# =====================================================
+# 📋 REQUIREMENTS.TXT - Sistema de Agentes Python
+# =====================================================
+# Python Version: 3.11+
+# Arquitectura: Hexagonal (Ports & Adapters)
+# =====================================================
+
+# =====================================================
+# 🔧 CORE DEPENDENCIES
+# =====================================================
+
+# Framework Web y API
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+httpx==0.25.2
+
+# Autenticación y Seguridad  
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.0
+
+# Validación y Serialización
+pydantic==2.5.3
+pydantic[email]==2.5.3
+pydantic-settings==2.1.0
+
+# Utilidades Core
+python-dateutil==2.8.2
+pytz==2023.3
+typing-extensions==4.9.0
+
+# =====================================================
+# 🤖 DOMAIN Dependencies
+# =====================================================
+
+# Domain Modeling
+attrs==23.2.0
+dataclasses-json==0.6.3
+
+# Validaciones de Dominio
+email-validator==2.1.0
+phonenumbers==8.13.27
+python-stdnum==1.19
+
+# =====================================================
+# 📦 APPLICATION Dependencies
+# =====================================================
+
+# Serialización
+marshmallow==3.20.1
+marshmallow-dataclass==8.6.0
+cattrs==23.2.3
+
+# Dependency Injection
+dependency-injector==4.41.0
+
+# =====================================================
+# 🗄️ DATABASE Dependencies
+# =====================================================
+
+# Base de Datos - PostgreSQL + Async
+sqlalchemy==2.0.25
+asyncpg==0.29.0
+alembic==1.13.1
+
+# SQLAlchemy Extensions
+sqlalchemy-utils==0.41.1
+
+# Para bases de datos alternativas
+pymysql==1.1.0  # MySQL
+aiosqlite==0.19.0  # SQLite async (para tests)
+cryptography==41.0.7  # Para conexiones seguras
+
+# =====================================================
+# 🔄 REPOSITORIES & CACHING Dependencies
+# =====================================================
+
+# Caching
+redis==5.0.1
+# aioredis está deprecated, redis incluye soporte async desde v4.2+
+cachetools==5.3.2
+
+# =====================================================
+# 🌐 API & ROUTES Dependencies
+# =====================================================
+
+# FastAPI Extensions
+slowapi==0.1.9  # Rate limiting
+# Nota: Starlette ya viene incluido con FastAPI
+
+# WebSockets (opcional)
+websockets==12.0
+python-socketio==5.10.0
+
+# =====================================================
+# 🧪 TESTING Dependencies
+# =====================================================
+
+# Testing Framework
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+pytest-xdist==3.5.0  # Parallel testing
+pytest-benchmark==4.0.0  # Performance testing
+
+# Mocking y Factories
+faker==22.0.0
+factory-boy==3.3.0
+freezegun==1.4.0
+
+# Testing HTTP
+httpx==0.25.2  # Ya incluido arriba, cliente async para tests
+
+# =====================================================
+# 📝 QUALITY & LINTING Dependencies
+# =====================================================
+
+# Linting y Formateo
+black==23.12.1
+isort==5.13.2
+flake8==7.0.0
+pylint==3.0.3
+
+# Type Checking
+mypy==1.8.0
+types-python-dateutil==2.8.19
+types-pytz==2023.3.1.1
+types-redis==4.6.0.11
+
+# Seguridad
+bandit==1.7.6
+
+# Complejidad de Código
+radon==6.0.1
+vulture==2.10  # Dead code detection
+
+# =====================================================
+# 📊 MONITORING & LOGGING (Opcional)
+# =====================================================
+
+# Logging estructurado
+structlog==24.1.0
+python-json-logger==2.0.7
+
+# Métricas
+prometheus-client==0.19.0
+
+# =====================================================
+# 📚 DOCUMENTATION (Opcional)
+# =====================================================
+
+# Documentación API
+mkdocs==1.5.3
+mkdocs-material==9.5.3
+
+# =====================================================
+# 🔧 DEVELOPMENT TOOLS (Opcional)
+# =====================================================
+
+# REPL mejorado
+ipython==8.19.0
+ipdb==0.13.13
+
+# Hot reload
+watchdog==3.0.0
+
+# =====================================================
+# 📊 DATA PROCESSING (Opcional - solo si se necesita)
+# =====================================================
+
+# Excel/CSV (descomentar si se usa)
+# pandas==2.1.4
+# openpyxl==3.1.2
+# xlsxwriter==3.1.9
+
+# =====================================================
+# 🔍 NOTAS DE INSTALACIÓN
+# =====================================================
+# 
+# Para instalar todas las dependencias:
+#   pip install -r requirements.txt
+#
+# Para desarrollo local con todas las opcionales:
+#   pip install -r requirements.txt --all-extras
+#
+# Para producción mínima (sin testing ni quality):
+#   pip install -r requirements-prod.txt
+#
+# Configuración de pre-commit hooks recomendada:
+#   pre-commit install
+#
+# =====================================================

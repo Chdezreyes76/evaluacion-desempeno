@@ -1,0 +1,81 @@
+
+# =====================================================
+# 🐳 Docker Compose - Arquitectura Hexagonal FastAPI + MySQL
+# =====================================================
+# Ubicación: /docker-compose.yml (raíz del proyecto)
+# =====================================================
+
+# =====================================================
+# 🌐 NETWORKS
+# =====================================================
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local
+
+services:
+  
+  # ===================================================
+  # 🗄️ MySQL Database
+  # ===================================================
+  mysql:
+    image: mysql:8.0
+    container_name: backend-mysql
+    restart: unless-stopped
+    
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-backend_db}
+      MYSQL_USER: ${MYSQL_USER:-backend_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-backend123}
+    
+    ports:
+      - "3306:3306"
+    
+    volumes:
+      - mysql-data:/var/lib/mysql
+    
+    networks:
+      - app-network
+    
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===================================================
+  # 🐍 Python/FastAPI Application
+  # ===================================================
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    
+    container_name: backend-api
+    restart: unless-stopped
+    
+    environment:
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER:-backend_user}:${MYSQL_PASSWORD:-backend123}@mysql:3306/${MYSQL_DATABASE:-backend_db}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      SECRET_KEY: ${SECRET_KEY:-secret123}
+    
+    ports:
+      - "8000:8000"
+    
+    volumes:
+      # Para desarrollo con hot-reload
+      - ./domain:/app/domain
+      - ./application:/app/application
+      - ./adapter:/app/adapter
+      - ./main.py:/app/main.py
+    
+    networks:
+      - app-network
+    
+    depends_on:
+      mysql:
+        condition: service_healthy

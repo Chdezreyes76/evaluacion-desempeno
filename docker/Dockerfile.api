@@ -1,0 +1,89 @@
+# =====================================================
+# 🐳 Dockerfile - Python/FastAPI Application
+# =====================================================
+# Ubicación: /docker/Dockerfile.api
+# =====================================================
+
+# Multi-stage build para optimizar el tamaño de la imagen
+FROM python:3.11-slim as builder
+
+# Variables de entorno para Python
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Instalar dependencias del sistema necesarias para compilación
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    libpq-dev \
+    python3-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear directorio de trabajo
+WORKDIR /tmp
+
+# Copiar requirements y crear wheels
+COPY docker/requirements.txt .
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /tmp/wheels -r requirements.txt
+
+# =====================================================
+# Imagen final optimizada
+# =====================================================
+FROM python:3.11-slim
+
+# Variables de entorno para Python y la aplicación
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    PORT=8000 \
+    HOST=0.0.0.0
+
+# Instalar dependencias del sistema solo para runtime
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    curl \
+    netcat-traditional \
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear usuario no-root para seguridad
+RUN groupadd -g 1000 appuser && \
+    useradd -r -u 1000 -g appuser -s /bin/bash -d /app appuser
+
+# Crear estructura de directorios
+RUN mkdir -p /app && chown -R appuser:appuser /app
+
+# Cambiar al directorio de trabajo
+WORKDIR /app
+
+# Copiar wheels desde el builder e instalar
+COPY --from=builder /tmp/wheels /tmp/wheels
+COPY docker/requirements.txt /tmp/
+RUN pip install --no-cache /tmp/wheels/* && \
+    rm -rf /tmp/wheels /tmp/requirements.txt
+
+# Copiar el código de la aplicación
+COPY --chown=appuser:appuser . /app/
+
+# Script de entrada para verificar la BD antes de iniciar
+COPY --chown=appuser:appuser docker/entrypoint.sh /usr/local/bin/
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh && \
+    chmod +x /usr/local/bin/entrypoint.sh
+
+# Cambiar al usuario no-root
+USER appuser
+
+# Exponer el puerto
+EXPOSE 8000
+
+# Healthcheck para Docker
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Comando de entrada
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+# Comando por defecto (puede ser sobrescrito en docker-compose)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
