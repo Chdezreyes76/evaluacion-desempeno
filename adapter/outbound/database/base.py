@@ -21,10 +21,17 @@ load_dotenv()
 # =====================================================
 
 # Obtener URL de la base de datos desde variables de entorno
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "mysql+pymysql://backend_user:backend123@localhost:3306/backend_db"
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# Si no existe DATABASE_URL, construir desde variables individuales
+if not DATABASE_URL:
+    MYSQL_USER = os.getenv("MYSQL_USER", "backend_user")
+    MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "backend123")
+    MYSQL_SERVICE_HOST = os.getenv("MYSQL_SERVICE_HOST", "mysql")
+    MYSQL_SERVICE_PORT = os.getenv("MYSQL_SERVICE_PORT", "3306")
+    MYSQL_BD_NAME = os.getenv("MYSQL_BD_NAME", "backend_db")
+
+    DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_SERVICE_HOST}:{MYSQL_SERVICE_PORT}/{MYSQL_BD_NAME}"
 
 # Configuración para desarrollo/producción
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
@@ -53,7 +60,7 @@ engine = create_engine(
     connect_args={
         "connect_timeout": 10,
         "charset": "utf8mb4"
-    } if "mysql" in DATABASE_URL else {}
+    } if DATABASE_URL and "mysql" in DATABASE_URL else {}
 )
 
 # =====================================================
@@ -141,17 +148,18 @@ def init_database():
     Crea todas las tablas si no existen
     """
     try:
+        from sqlalchemy import text
         # Importar todos los modelos para que Base los conozca
         # IMPORTANTE: Descomentar cuando tengas modelos creados
         # from adapter.outbound.database.models import user, product, order
-        
+
         # Crear todas las tablas
         Base.metadata.create_all(bind=engine)
         print("✅ Base de datos inicializada correctamente")
-        
+
         # Verificar conexión
         with engine.connect() as conn:
-            result = conn.execute("SELECT 1")
+            result = conn.execute(text("SELECT 1"))
             print("✅ Conexión a base de datos verificada")
             
     except Exception as e:
@@ -174,8 +182,9 @@ def check_database_connection():
     Verificar que la conexión a la BD funciona
     """
     try:
+        from sqlalchemy import text
         with engine.connect() as conn:
-            result = conn.execute("SELECT 1")
+            result = conn.execute(text("SELECT 1"))
             return True
     except Exception as e:
         print(f"❌ Error conectando a la base de datos: {e}")
